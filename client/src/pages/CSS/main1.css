@@ -1,0 +1,191 @@
+a {
+  text-decoration: none;
+}
+.main-container {
+  position: relative;
+  height: 100vh;
+  background: url("../img/forest.jpg") no-repeat center/cover,
+    url("../img/vectorMap.svg") no-repeat bottom right;
+  background-size: cover, 40%;
+  background-blend-mode: lighten;
+  display: flex;
+  align-items: center;
+  text-align: left;
+  color: #f7f4ef;
+  overflow: hidden;
+  padding-left: 10vw;
+}
+
+/* Затемняющий слой */
+.overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+}
+
+/* Контент (заголовки и кнопка) */
+.content {
+  position: relative;
+  z-index: 2;
+}
+
+/* Заголовок */
+.ant-typography.main-title {
+  font-family: "Poiret One", cursive;
+  color: #f7f4ef;
+  font-size: 8vw;
+  width: 55%;
+}
+
+.ant-typography.title-part {
+  color: #344e41;
+  font-size: 40;
+  font-family: "Bitter";
+}
+
+/* Подзаголовок */
+.main-subtitle {
+  font-size: 1.8vw;
+  color: white;
+  font-family: "Bitter", serif;
+}
+
+/* Кнопка */
+.main-button {
+  background-color: #ff4d4f;
+  border: none;
+  font-size: 1.5vw;
+  padding: 0.8vw 2vw;
+}
+
+/* Зачем карта */
+.about-container {
+  position: relative;
+  height: 100vh;
+  background-color: #F7F4EF; /* Основной фон */
+}
+
+.about-container::before {
+  content: "";
+  position: absolute;
+  top: -20%;
+  /* left: 50%; */
+  width: 100%;
+  height: 100%;
+  background: url("../img/greenLine.svg") no-repeat center;
+  /* background-size: contain; Чтобы SVG не выходил за границы */
+  /* transform: translate(-50%, -50%); */
+  z-index: 0; /* Отправляем под контент */
+}
+
+/* Секция "Как участвовать" */
+.participation-section {
+  height: 100vh;
+  background-color: #f8c7cc;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 0 20px;
+}
+
+/* Контейнер для карточек */
+.cards-container {
+  width: 60%; /* Ширина карточек равна заголовку */
+  max-width: 800px; /* Чтобы не растягивались на больших экранах */
+  display: flex;
+  justify-content: space-between;
+}
+
+/* Карточки */
+.custom-card {
+  width: 100%; /* Делаем карточку равной ширине контейнера */
+  text-align: center;
+  background-color: #f7f4ef;
+  border-radius: 10px;
+}
+
+/* Заголовок и текст в карточке */
+.card-title {
+  font-size: 1.4rem;
+}
+
+.card-text {
+  font-size: 1rem;
+}
+
+/* 🔹 Адаптивность */
+@media (max-width: 768px) {
+  .cards-container {
+    width: 90%; /* Делаем ширину адаптивной */
+  }
+
+  .custom-card {
+    width: 100%;
+  }
+}
+
+/* 🔹 Адаптивность для планшетов и мобильных */
+@media (max-width: 1024px) {
+  .main-container {
+    padding-left: 5vw;
+    background-size: cover, 50%; /* Чуть уменьшаем карту */
+  }
+
+  .ant-typography.main-title {
+    font-size: 10vw; /* Делаем заголовок чуть меньше */
+    width: 70%;
+  }
+
+  .main-subtitle {
+    font-size: 3vw;
+  }
+
+  .main-button {
+    font-size: 2.5vw;
+    padding: 1vw 3vw;
+  }
+}
+
+@media (max-width: 768px) {
+  .main-container {
+    padding-left: 3vw;
+    background-size: cover, 60%; /* Карта ещё меньше */
+  }
+
+  .ant-typography.main-title {
+    font-size: 12vw; /* Ещё меньше на мобильных */
+    width: 80%;
+  }
+
+  .main-subtitle {
+    font-size: 4vw;
+  }
+
+  .main-button {
+    font-size: 3vw;
+    padding: 1.2vw 4vw;
+  }
+}
+
+@media (max-width: 480px) {
+  .main-container {
+    padding-left: 2vw;
+    background-size: cover, 70%; /* Карта на мини-экранах */
+  }
+
+  .ant-typography.main-title {
+    font-size: 14vw; /* Самый маленький размер заголовка */
+    width: 90%;
+  }
+
+  .main-subtitle {
+    font-size: 5vw;
+  }
+
+  .main-button {
+    font-size: 4vw;
+    padding: 1.5vw 5vw;
+  }
+}
