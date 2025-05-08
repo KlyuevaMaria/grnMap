@@ -1,9 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Table, Button, Modal, Input, message, Spin } from "antd";
+import { Table, Button, Modal, Input, message, Spin, Tag } from "antd";
 import { fetchAllAppeals, replyToAppeal } from "../../store/appealAdminThunks";
 import Highlighter from "react-highlight-words"; // для подсветки поиска
 import { SearchOutlined } from "@ant-design/icons";
+import { Content } from "antd/es/layout/layout";
+import Title from "antd/es/typography/Title";
+import Search from "antd/es/transfer/search";
 
 const { TextArea } = Input;
 
@@ -35,7 +38,9 @@ const AdminAppeals = () => {
     }
 
     try {
-      await dispatch(replyToAppeal({ appealId: selectedAppeal.id, description: replyText })).unwrap();
+      await dispatch(
+        replyToAppeal({ appealId: selectedAppeal.id, description: replyText })
+      ).unwrap();
       message.success("Ответ отправлен!");
       setIsModalOpen(false);
       setReplyText("");
@@ -46,64 +51,17 @@ const AdminAppeals = () => {
     }
   };
 
-  // --- Функции для поиска ---
-  let searchInput;
-  const getColumnSearchProps = (dataIndex) => ({
-    filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters }) => (
-      <div style={{ padding: 8 }}>
-        <Input
-          ref={(node) => {
-            searchInput = node;
-          }}
-          placeholder={`Поиск по ${dataIndex}`}
-          value={selectedKeys[0]}
-          onChange={(e) => setSelectedKeys(e.target.value ? [e.target.value] : [])}
-          onPressEnter={() => handleSearch(selectedKeys, confirm, dataIndex)}
-          style={{ marginBottom: 8, display: "block" }}
-        />
-        <div style={{ display: "flex", gap: "8px" }}>
-          <Button
-            type="primary"
-            onClick={() => handleSearch(selectedKeys, confirm, dataIndex)}
-            icon={<SearchOutlined />}
-            size="small"
-            style={{ width: 90 }}
-          >
-            Найти
-          </Button>
-          <Button onClick={() => handleReset(clearFilters)} size="small" style={{ width: 90 }}>
-            Сбросить
-          </Button>
-        </div>
-      </div>
-    ),
-    filterIcon: (filtered) => <SearchOutlined style={{ color: filtered ? "#1890ff" : undefined }} />,
-    onFilter: (value, record) =>
-      record[dataIndex]
-        ? record[dataIndex].toString().toLowerCase().includes(value.toLowerCase())
-        : "",
-    render: (text) =>
-      searchedColumn === dataIndex ? (
-        <Highlighter
-          highlightStyle={{ backgroundColor: "#ffc069", padding: 0 }}
-          searchWords={[searchText]}
-          autoEscape
-          textToHighlight={text ? text.toString() : ""}
-        />
-      ) : (
-        text
-      ),
-  });
-
-  const handleSearch = (selectedKeys, confirm, dataIndex) => {
-    confirm();
-    setSearchText(selectedKeys[0]);
-    setSearchedColumn(dataIndex);
-  };
-
-  const handleReset = (clearFilters) => {
-    clearFilters();
-    setSearchText("");
+  const getStatusTag = (status) => {
+    switch (status) {
+      case "resolved":
+        return <Tag color="green">Решено</Tag>;
+      case "processing":
+        return <Tag color="blue">В обработке</Tag>;
+      case "received":
+        return <Tag color="orange">Получено</Tag>;
+      default:
+        return <Tag>Неизвестно</Tag>;
+    }
   };
 
   // --- Колонки ---
@@ -124,26 +82,48 @@ const AdminAppeals = () => {
     {
       title: "Описание обращения",
       dataIndex: "description",
-      key: "description",
-      ...getColumnSearchProps("description"),
+      width:300,
+      ellipsis:true,
+      render: (text) => (
+        <Highlighter
+          highlightStyle={{ backgroundColor: "#F8C7CC", padding: 0 }}
+          searchWords={[searchText]}
+          autoEscape
+          textToHighlight={text ? text.toString() : ""}
+        />
+      ),
+    },
+    {
+      title: "Ответ",
+      dataIndex: "response",
+      key: "response",
+      width:300,
+
+      render: (response) =>
+        response?.description || (
+          <span style={{ color: "#999" }}>Нет ответа</span>
+        ),
     },
     {
       title: "Статус",
       dataIndex: "status",
       key: "status",
-      render: (_, record) => (record.response ? "Отвечено" : "Открыто"),
+      render: (_, record) =>
+        getStatusTag(record.response ? "resolved" : "received"),
       filters: [
         { text: "Открыто", value: "Открыто" },
         { text: "Отвечено", value: "Отвечено" },
       ],
-      onFilter: (value, record) => (record.response ? "Отвечено" : "Открыто") === value,
+      onFilter: (value, record) =>
+        (record.response ? "Отвечено" : "Открыто") === value,
     },
     {
-      title: "Дата создания",
+      title: "Дата",
       dataIndex: "createdAt",
       key: "createdAt",
       render: (date) => new Date(date).toLocaleString(),
-      sorter: (a, b) => new Date(a.createdAt) > new Date(b.createdAt) ? 1 : -1,
+      sorter: (a, b) =>
+        new Date(a.createdAt) > new Date(b.createdAt) ? 1 : -1,
       defaultSortOrder: "descend", // Сначала новые
     },
     {
@@ -152,7 +132,7 @@ const AdminAppeals = () => {
       render: (_, record) => (
         <Button
           type="primary"
-          style={{ backgroundColor: "#2c5c3f", borderColor: "#2c5c3f" }}
+          // style={{ backgroundColor: "#F8C7CC", borderColor: "#F8C7CC" }}
           onClick={() => handleReplyClick(record)}
           disabled={record.response} // запретить повторный ответ
         >
@@ -162,20 +142,66 @@ const AdminAppeals = () => {
     },
   ];
 
+  const filteredData = appeals.filter((item) =>
+    item.description.toLowerCase().includes(searchText.toLowerCase())
+  );
+
   if (loading) {
-    return <Spin size="large" style={{ display: "block", margin: "100px auto" }} />;
+    return (
+      <Spin size="large" style={{ display: "block", margin: "100px auto" }} />
+    );
   }
 
   return (
-    <>
-      <h2 style={{ marginBottom: "24px" }}>Обращения пользователей</h2>
+    <div
+      style={{
+        padding: "40px 20px",
+        background: "#F7F4EF",
+        minHeight: "100vh",
+      }}
+    >
+      <Title
+        level={1}
+        style={{
+          textAlign: "center",
+          marginBottom: "30px",
+          color: "#D5573B",
+          fontFamily: "Poiret One",
+        }}
+      >
+        Обращения пользователей
+      </Title>
+      {/* <Input
+        placeholder="Поиск обращений"
+        value={searchText}
+        onChange={(e) => setSearchText(e.target.value)}
+        style={{ marginBottom: 16, maxWidth: 400 }}
+        allowClear
+      /> */}
+      <div
+        style={{
+          display: "flex",
+          flexWrap: "wrap",
+          gap: "16px",
+          justifyContent: "space-between",
+          marginBottom: 16,
+        }}
+      >
+        <Search
+          placeholder="Поиск обращений"
+          value={searchText}
+          onChange={(e) => setSearchText(e.target.value)}
+          allowClear
+          style={{ maxWidth: 400, flex: 1 }}
+        />
+      </div>
       <Table
-        dataSource={appeals}
+        dataSource={filteredData}
         columns={columns}
         rowKey="id"
         pagination={{ pageSize: 10 }}
+        scroll={{ x: "max-content" }}
       />
-
       <Modal
         title={`Ответ на обращение №${selectedAppeal?.id}`}
         open={isModalOpen}
@@ -194,7 +220,7 @@ const AdminAppeals = () => {
           placeholder="Введите ваш ответ..."
         />
       </Modal>
-    </>
+    </div>
   );
 };
 

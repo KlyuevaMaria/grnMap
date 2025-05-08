@@ -28,3 +28,17 @@ export const replyToAppeal = createAsyncThunk(
     }
   }
 );
+
+
+// Получить все ответы
+// export const fetchAllResponses = createAsyncThunk(
+//   "appeals/fetchAllResponses",
+//   async (_, thunkAPI) => {
+//     try {
+//       const response = await axiosInstance.get("/appeal/admin/get-responses");
+//       return response.data;
+//     } catch (error) {
+//       return thunkAPI.rejectWithValue(error.response?.data?.message || "Ошибка при загрузке ответов");
+//     }
+//   }
+// );

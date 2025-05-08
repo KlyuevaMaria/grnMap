@@ -3,7 +3,6 @@ import Main from "../pages/Main";
 import Main1 from "../pages/Main1";
 
 import Map from "../pages/Map";
-import New from "../pages/New";
 import About from "../pages/About";
 import AdminPanel from "../pages/AdminPanel";
 import Reg from "../pages/reg";
@@ -14,6 +13,7 @@ import TreeDetailPage from "../pages/admin/TreeDetailPage";
 import TreeEditPage from "../pages/admin/TreeEditPage";
 import AdminAppeals from "../pages/admin/AdminAppeals";
 import EmailVerificationPage from "../pages/EmailVerificationPage";
+import Current from "../pages/Current";
 
 const AppRoutes = () => {
   return (
@@ -21,7 +21,7 @@ const AppRoutes = () => {
       {/* <Route path="/" element={<Main />}></Route> */}
       <Route path="/" element={<Main1 />}></Route>
       <Route path="/map" element={<Map />}></Route>
-      <Route path="/news" element={<New />}></Route>
+      <Route path="/current" element={<Current />}></Route>
       <Route path="/about" element={<About />}></Route>
       <Route path="/register" element={<Signup />}></Route>
       <Route path="/login" element={<Signin />}></Route>

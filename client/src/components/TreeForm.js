@@ -25,9 +25,9 @@ const { TextArea } = Input;
 const TreeForm = ({
   initialValues = {},
   onFinishSuccess,
-  stepFields = null, // <<< Добавлено
-  showNextButton = false, // <<< Добавлено
-  isLastStep = false, // <<< Добавлено
+  stepFields = null, 
+  showNextButton = false, 
+  isLastStep = false, 
   isLoadingAddress = false,
 }) => {
   const [form] = Form.useForm();

@@ -1,31 +1,41 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { load } from "@2gis/mapgl";
 import { Clusterer } from "@2gis/mapgl-clusterer";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchTrees } from "../store/trees/treeThunks";
 import AddTreeModal from "../components/AddTreeModal";
 import { message } from "antd";
-import AddTreeButton from "../components/AddTreeButton";
-import { useSearchParams } from "react-router-dom";
 
 const Map = () => {
   const mapInstanceRef = useRef(null);
-  const markerRef = useRef(null);
   const clustererRef = useRef(null);
-
   const dispatch = useDispatch();
   const { list } = useSelector((state) => state.trees);
   const { user } = useSelector((state) => state.auth);
 
   const [isAddTreeModalOpen, setIsAddTreeModalOpen] = useState(false);
+  const [newTreeCoords, setNewTreeCoords] = useState(null);
+  const [newTreeAddress, setNewTreeAddress] = useState("");
   const [modalProps, setModalProps] = useState(null);
 
   const mapCenter = [40.3949328, 56.126434];
 
-  //Открытие дерева при переходе с детальной страницы
-  const [searchParams] = useSearchParams();
-  const lat = parseFloat(searchParams.get("lat"));
-  const lng = parseFloat(searchParams.get("lng"));
+  const VLADIMIR_BOUNDS = {
+    north: 56.19,
+    south: 56.07,
+    west: 40.34,
+    east: 40.47,
+    // 56.123255, 40.164072
+    // 56.177402, 40.517178
+  };
+  // function isWithinVladimirBounds(lat, lng) {
+  //   return (
+  //     lat >= VLADIMIR_BOUNDS.south &&
+  //     lat <= VLADIMIR_BOUNDS.north &&
+  //     lng >= VLADIMIR_BOUNDS.west &&
+  //     lng <= VLADIMIR_BOUNDS.east
+  //   );
+  // }
 
   useEffect(() => {
     dispatch(fetchTrees());
@@ -50,32 +60,38 @@ const Map = () => {
         clusterIconPieChartCoreRadius: 10,
       });
 
-      //Открытие дерева при переходе с детальной страницы
-      if (!isNaN(lat) && !isNaN(lng)) {
-        // Просто центрируем карту на существующее дерево
-        map.setCenter([lng, lat]);
-        map.setZoom(18);
-      }
+      // Клик по карте - открытие формы добавления
+      map.on("click", (event) => {
+        if (!user) {
+          message.warning("Авторизуйтесь, чтобы добавить дерево");
+          return;
+        }
 
-      map.on("click", async (event) => {
-        const coordinates = event.lngLat;
+        // const coords = event.lngLat;
 
-        if (markerRef.current) markerRef.current.destroy();
-        markerRef.current = new mapglAPI.Marker(map, {
-          coordinates: [coordinates[0], coordinates[1]],
-        });
-
+        // setNewTreeCoords({
+        //   lat: coords[1],
+        //   lng: coords[0],
+        // });
         const coords = {
-          lat: coordinates[1],
-          lng: coordinates[0],
+          lat: event.lngLat[1],
+          lng: event.lngLat[0],
         };
-        console.log("coord", coords);
+        console.log("COORDS", coords);
 
-        const address = await getAddressFromCoords(coords.lng, coords.lat);
+        const address = getAddressFromCoords(coords.lng, coords.lat);
 
-        map.setCenter(coordinates);
+        setModalProps({
+          coords,
+          address,
+        });
+        // console.log("COORDS", newTreeCoords);
 
-        setModalProps({ coords, address });
+        // if (!isWithinVladimirBounds(coords.lat, coords.lng)) {
+        //   message.warning("Вы выбрали точку за пределами города Владимир");
+        //   return;
+        // }
+        setIsAddTreeModalOpen(true);
       });
     });
 
@@ -102,12 +118,15 @@ const Map = () => {
         `https://catalog.api.2gis.com/3.0/items/geocode?point=${longitude},${latitude}&key=592dca93-79b5-47c8-b149-e8bf215b0fd2`
       );
       const data = await response.json();
+      // if (data?.result?.items?.[0]?.full_name) {
+      //   return data.result.items[0].full_name;
+      // }
       const item = data?.result?.items?.[0];
-      console.log("adress", data);
-
       if (item?.address_name) {
         return item.address_name;
       }
+      console.log(data);
+
       return "Адрес не найден";
     } catch (error) {
       console.error("Ошибка при получении адреса:", error);
@@ -115,32 +134,32 @@ const Map = () => {
     }
   };
 
-  const resetMapState = useCallback(() => {
-    if (markerRef.current) markerRef.current.destroy();
-    markerRef.current = null;
-    setModalProps(null);
-  }, []);
+  // useEffect(() => {
+  //   if (newTreeCoords) {
+  //     const fetchAddress = async () => {
+  //       const addr = await getAddressFromCoords(
+  //         newTreeCoords.lng,
+  //         newTreeCoords.lat
+  //       );
+  //       setNewTreeAddress(addr);
+  //     };
+  //     fetchAddress();
+  //   }
+  // }, [newTreeCoords]);
 
-  const handleCloseAddTreeModal = () => {
-    setIsAddTreeModalOpen(false);
-    resetMapState();
-  };
-
-  const handleOpenAddTreeModal = () => {
-    if (!modalProps) {
-      message.warning("Сначала выберите место на карте");
-      return;
-    }
-    setIsAddTreeModalOpen(true);
-  };
-
+  // useEffect(() => {
+  //   if (newTreeCoords) {
+  //     setIsAddTreeModalOpen(true);
+  //   }
+  // }, [newTreeCoords]);
   return (
     <>
-      <AddTreeButton onClick={handleOpenAddTreeModal} />
       <div id="map-container" style={{ width: "100vw", height: "100vh" }}></div>
       <AddTreeModal
         isOpen={isAddTreeModalOpen}
-        onClose={handleCloseAddTreeModal}
+        onClose={() => setIsAddTreeModalOpen(false)}
+        // initialCoords={newTreeCoords}
+        // initialAddress={newTreeAddress}
         initialCoords={modalProps?.coords || null}
         initialAddress={modalProps?.address || ""}
       />

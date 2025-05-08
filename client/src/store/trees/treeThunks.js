@@ -21,32 +21,15 @@ export const fetchTreeById = createAsyncThunk(
   }
 );
 
-// export const updateTree = createAsyncThunk(
-//   "trees/update",
-//   async ({ id, data }, thunkAPI) => {
-//     const token = localStorage.getItem("token");
-//     const res = await axios.put(
-//       "http://localhost:8080/api/tree/admin/tree",
-//       data,
-//       {
-//         headers: { Authorization: `Bearer ${token}` },
-//       }
-//     );
-//     return res.data;
-//   }
-// );
-
 export const updateTreeById = createAsyncThunk(
   "trees/update",
   async ({ id, data }, thunkAPI) => {
     try {
       const res = await axiosInstance.put(`/tree/admin/tree/${id}`, data);
-    return res.data;
+      return res.data;
     } catch (error) {
       return thunkAPI.rejectWithValue(error.response.data);
-
     }
-    
   }
 );
 
@@ -119,15 +102,26 @@ export const createTree = createAsyncThunk(
       formData.append("number_of_barrels", formValues.number_of_barrels || 1);
       formData.append("crown_diameter", formValues.crown_diameter || 0);
 
-      // Фото (обязательно!)
-      if (formValues.photo && formValues.photo.length > 0) {
-        formData.append("photo", formValues.photo[0].originFileObj);
-      }
+      // Фото 
 
-      // Документ (обязательно!)
-      if (formValues.document && formValues.document.length > 0) {
-        formData.append("document", formValues.document[0].originFileObj);
+      if (formValues.photo && formValues.photo.length > 0) {
+        formValues.photo.forEach((fileObj) => {
+          formData.append("photo", fileObj.originFileObj);
+        });
       }
+      // if (formValues.photo && formValues.photo.length > 0) {
+      //   formData.append("photo", formValues.photo[0].originFileObj);
+      // }
+      // // Документ 
+      if (formValues.document && formValues.document.length > 0) {
+        formValues.document.forEach((fileObj) => {
+          formData.append("document", fileObj.originFileObj);
+        });
+      }
+      // if (formValues.document && formValues.document.length > 0) {
+      //   formData.append("document", formValues.document[0].originFileObj);
+      // }
+
       for (let [key, val] of formData.entries()) {
         if (val instanceof File) {
           console.log(`${key}: ${val.name} (${val.type}, ${val.size} bytes)`);
@@ -144,8 +138,8 @@ export const createTree = createAsyncThunk(
       return res.data;
     } catch (error) {
       return thunkAPI.rejectWithValue(
-        error
-        // error.response?.data || "Ошибка при добавлении дерева"
+        // error
+        error.response?.data || "Ошибка при добавлении дерева"
       );
     }
   }

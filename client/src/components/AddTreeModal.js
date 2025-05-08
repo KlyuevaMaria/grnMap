@@ -27,62 +27,56 @@ const { Step } = Steps;
 
 const AddTreeModal = ({ isOpen, onClose, initialCoords }) => {
   const [form] = Form.useForm();
-
-  const [address, setAddress] = useState("");
-  const [isLoadingAddress, setIsLoadingAddress] = useState(false);
-
   const dispatch = useDispatch();
   const { conditions, environments, specialNotes, statuses } = useSelector(
     (state) => state.trees
   );
 
+  const [address, setAddress] = useState("");
+  const [isLoadingAddress, setIsLoadingAddress] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
 
   const initialValues = {
-    // adress: initialAddress || "",
     latitude: initialCoords?.lat || 0,
     longitude: initialCoords?.lng || 0,
   };
+
   useEffect(() => {
-    const getAddressFromCoords = async (longitude, latitude) => {
-      try {
-        setIsLoadingAddress(true);
-        const response = await fetch(
-          `https://catalog.api.2gis.com/3.0/items/geocode?point=${longitude},${latitude}&key=592dca93-79b5-47c8-b149-e8bf215b0fd2`
-        );
-        const data = await response.json();
-        if (data?.result?.items?.length > 0) {
-          console.log("Адрес не найден", data);
-
-          return data.result.items[0].full_name;
-        }
-
-        return "Адрес не найден";
-      } catch (error) {
-        console.error("Ошибка при получении адреса:", error);
-        return "Ошибка определения адреса";
-      } finally {
-        setIsLoadingAddress(false);
-      }
-    };
-
     if (initialCoords) {
+      const getAddressFromCoords = async (lng, lat) => {
+        try {
+          setIsLoadingAddress(true);
+          const response = await fetch(
+            `https://catalog.api.2gis.com/3.0/items/geocode?point=${lng},${lat}&key=592dca93-79b5-47c8-b149-e8bf215b0fd2`
+          );
+          const data = await response.json();
+          return data?.result?.items?.[0]?.full_name || "Адрес не найден";
+        } catch {
+          return "Ошибка определения адреса";
+        } finally {
+          setIsLoadingAddress(false);
+        }
+      };
+
       const fetchAddress = async () => {
         const addr = await getAddressFromCoords(
           initialCoords.lng,
           initialCoords.lat
         );
         setAddress(addr);
-        form.setFieldsValue({ adress: addr }); // 🛠️ ВОТ ЭТО ДОБАВЬ
+        form.setFieldsValue({
+          adress: addr,
+          longitude: initialCoords.lng,
+          latitude: initialCoords.lat,
+        });
       };
+
       fetchAddress();
     }
   }, [initialCoords, form]);
 
   useEffect(() => {
-    if (address) {
-      form.setFieldsValue({ adress: address });
-    }
+    if (address) form.setFieldsValue({ adress: address });
   }, [address, form]);
 
   useEffect(() => {
@@ -92,18 +86,29 @@ const AddTreeModal = ({ isOpen, onClose, initialCoords }) => {
     dispatch(fetchStatuses());
   }, [dispatch]);
 
-  const normFile = (e) => (Array.isArray(e) ? e : e?.fileList);
+  useEffect(() => {
+    if (!isOpen) {
+      form.resetFields();
+      setCurrentStep(0);
+      setAddress("");
+    }
+  }, [isOpen]);
 
-  const beforeUpploadPhoto = (photo) => {
-    const isJpgOrPng =
-      photo.type === "image/jpeg" || photo.type === "image/png";
-    const isFileUnder5MB = photo.size / 1024 / 1024 < 5;
-    if (!isJpgOrPng) message.error("Можно загружать только JPG/PNG файлы");
-    if (!isFileUnder5MB) message.error("Фото должно быть меньше 5MB");
-    return isJpgOrPng && isFileUnder5MB ? false : Upload.LIST_IGNORE;
+  // const normFile = (e) => (Array.isArray(e) ? e : e?.fileList);
+  const normFile = (e) => {
+    if (Array.isArray(e)) return e;
+    return e && Array.isArray(e.fileList) ? e.fileList : [];
   };
 
-  const beforeUpploadDocument = (file) => {
+  const beforeUploadPhoto = (file) => {
+    const isValidType = ["image/jpeg", "image/png"].includes(file.type);
+    const isUnderSize = file.size / 1024 / 1024 < 5;
+    if (!isValidType) message.error("Можно загружать только JPG/PNG файлы");
+    if (!isUnderSize) message.error("Фото должно быть меньше 5MB");
+    return isValidType && isUnderSize ? false : Upload.LIST_IGNORE;
+  };
+
+  const beforeUploadDocument = (file) => {
     const allowedTypes = [
       "text/plain",
       "application/pdf",
@@ -111,11 +116,10 @@ const AddTreeModal = ({ isOpen, onClose, initialCoords }) => {
       "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
     ];
     const isAllowed = allowedTypes.includes(file.type);
-    const isFileUnder2MB = file.size / 1024 / 1024 < 2;
-    if (!isAllowed)
-      message.error("Можно загружать только TXT, PDF, DOC или DOCX файлы");
-    if (!isFileUnder2MB) message.error("Документ должен быть меньше 2MB");
-    return isAllowed && isFileUnder2MB ? false : Upload.LIST_IGNORE;
+    const isUnderSize = file.size / 1024 / 1024 < 2;
+    if (!isAllowed) message.error("Допустимы только TXT, PDF, DOC, DOCX");
+    if (!isUnderSize) message.error("Файл должен быть меньше 2MB");
+    return isAllowed && isUnderSize ? false : Upload.LIST_IGNORE;
   };
 
   const handleNext = async () => {
@@ -127,54 +131,18 @@ const AddTreeModal = ({ isOpen, onClose, initialCoords }) => {
     }
   };
 
-  const handlePrev = () => {
-    setCurrentStep((prev) => prev - 1);
-  };
+  const handlePrev = () => setCurrentStep((prev) => prev - 1);
 
   const handleFinish = async () => {
     try {
-      // const values = await form.validateFields();
       const values = form.getFieldsValue(true);
-
-      console.log("🟢 VALID VALUES:", values);
-
-      // const formData = new FormData();
-
-      // formData.append("type", values?.type?.name || "");
-      // formData.append("adress", values.adress || "");
-      // formData.append("latitude", values.latitude || 0);
-      // formData.append("longitude", values.longitude || 0);
-      // formData.append("statusId", values.statusId || "");
-      // formData.append("envId", values.envId || "");
-      // formData.append("specialNoteId", values.specialNoteId || "");
-      // formData.append("conditionId", values.conditionId || "");
-      // formData.append("owner", values.owner || "");
-      // formData.append("year", values.year_of_planting?.year() || "");
-      // formData.append("height", values.height || 0);
-      // formData.append("diameter", values.diameter || 0);
-      // formData.append("number_of_barrels", values.number_of_barrels || 0);
-      // formData.append("crown_diameter", values.crown_diameter || 0);
-      // formData.append("description", values.description || "");
-
-      // if (values.photo && values.photo.length > 0) {
-      //   formData.append("photo", values.photo[0].originFileObj);
-      // }
-
-      // if (values.document && values.document.length > 0) {
-      //   formData.append("document", values.document[0].originFileObj);
-      // }
-
       await dispatch(createTree(values)).unwrap();
-      console.log(values);
-
       message.success("Дерево успешно добавлено!");
       form.resetFields();
       onClose();
     } catch (error) {
       console.error(error);
-      console.log("🔴 Validation failed:", error);
-
-      message.error(error.response.data.message);
+      message.error("Ошибка при сохранении данных");
     }
   };
 
@@ -186,36 +154,38 @@ const AddTreeModal = ({ isOpen, onClose, initialCoords }) => {
           <Form.Item
             name={["type", "name"]}
             label="Тип дерева"
-            rules={[
-              { required: true, message: "Пожалуйста, укажите тип дерева" },
-            ]}
+            rules={[{ required: true, message: "Укажите тип дерева" }]}
           >
             <Input placeholder="Клен, Дуб, Сосна..." />
           </Form.Item>
-
           <Form.Item
             name="adress"
             label="Адрес"
             rules={[{ required: true, message: "Введите адрес" }]}
           >
             <Input
-              placeholder="Адрес посадки дерева"
-              loading={isLoadingAddress}
               disabled={isLoadingAddress}
+              placeholder="Ближайший к дереву адрес"
             />
           </Form.Item>
-
-          <Form.Item name="latitude" label="Координаты широты">
+          <Form.Item
+            name="latitude"
+            label="Широта"
+            rules={[{ required: true, message: "Введите широту" }]}
+          >
             <InputNumber
               style={{ width: "100%" }}
-              placeholder="Введите широту"
+              placeholder="Введите координаты широты"
             />
           </Form.Item>
-
-          <Form.Item name="longitude" label="Координаты долготы">
+          <Form.Item
+            name="longitude"
+            label="Долгота"
+            rules={[{ required: true, message: "Введите долготу" }]}
+          >
             <InputNumber
               style={{ width: "100%" }}
-              placeholder="Введите долготу"
+              placeholder="Введите координаты долготы"
             />
           </Form.Item>
         </>
@@ -225,55 +195,77 @@ const AddTreeModal = ({ isOpen, onClose, initialCoords }) => {
       title: "Особенности дерева",
       content: (
         <>
-          <Form.Item name="statusId" label="Статус">
-            <Select placeholder="Выберите статус">
-              {statuses.map((status) => (
-                <Select.Option key={status.id} value={status.id}>
-                  {status.status_name}
+          <Form.Item
+            name="statusId"
+            label="Статус"
+            rules={[{ required: true, message: "Выберите статус" }]}
+          >
+            <Select placeholder="Статус">
+              {statuses.map((s) => (
+                <Select.Option key={s.id} value={s.id}>
+                  {s.status_name}
                 </Select.Option>
               ))}
             </Select>
           </Form.Item>
-
-          <Form.Item name="environmentId" label="Среда произрастания">
-            <Select placeholder="Выберите среду">
-              {environments.map((env) => (
-                <Select.Option key={env.id} value={env.id}>
-                  {env.name}
+          <Form.Item
+            name="environmentId"
+            label="Среда"
+            rules={[{ required: true, message: "Выберите среду" }]}
+          >
+            <Select placeholder="Среда">
+              {environments.map((e) => (
+                <Select.Option key={e.id} value={e.id}>
+                  {e.name}
                 </Select.Option>
               ))}
             </Select>
           </Form.Item>
-          <Form.Item name="specialNoteId" label="Особые пометки">
-            <Select placeholder="Выберите пометку">
-              {specialNotes.map((note) => (
-                <Select.Option key={note.id} value={note.id}>
-                  {note.note}
+          <Form.Item
+            name="specialNoteId"
+            label="Особая пометка"
+            rules={[{ required: true, message: "Выберите пометку" }]}
+          >
+            <Select placeholder="Особая пометка">
+              {specialNotes.map((n) => (
+                <Select.Option key={n.id} value={n.id}>
+                  {n.note}
                 </Select.Option>
               ))}
             </Select>
           </Form.Item>
-
-          <Form.Item name="conditionId" label="Состояние">
-            <Select placeholder="Выберите состояние">
-              {conditions.map((cond) => (
-                <Select.Option key={cond.id} value={cond.id}>
-                  {cond.name}
+          <Form.Item
+            name="conditionId"
+            label="Состояние"
+            rules={[{ required: true, message: "Выберите состояние" }]}
+          >
+            <Select placeholder="Состояние">
+              {conditions.map((c) => (
+                <Select.Option key={c.id} value={c.id}>
+                  {c.name}
                 </Select.Option>
               ))}
             </Select>
           </Form.Item>
-
           <Form.Item
             name="owner"
             label="Собственник"
-            rules={[{ required: true, message: "Введите владельца" }]}
+            rules={[{ required: true, message: "Укажите владельца" }]}
           >
-            <Input placeholder="Введите владельца" />
+            <Input />
           </Form.Item>
-
-          <Form.Item name="year_of_planting" label="Год посадки">
-            <DatePicker picker="year" style={{ width: "100%" }} />
+          <Form.Item
+            name="year_of_planting"
+            label="Год посадки"
+            rules={[{ required: true, message: "Укажите год посадки" }]}
+          >
+            <DatePicker
+              picker="year"
+              style={{ width: "100%" }}
+              disabledDate={(current) =>
+                current && current.year() > new Date().getFullYear()
+              }
+            />
           </Form.Item>
         </>
       ),
@@ -282,40 +274,33 @@ const AddTreeModal = ({ isOpen, onClose, initialCoords }) => {
       title: "Характеристики",
       content: (
         <>
-          <Form.Item name="height" label="Высота (м)">
-            <InputNumber
-              min={0}
-              step={0.1}
-              style={{ width: "100%" }}
-              placeholder="Высота"
-            />
+          <Form.Item
+            name="height"
+            label="Высота (см)"
+            rules={[{ required: true, message: "Введите высоту" }]}
+          >
+            <InputNumber min={0} step={0.1} style={{ width: "100%" }} />
           </Form.Item>
-
-          <Form.Item name="diameter" label="Диаметр ствола (см)">
-            <InputNumber
-              min={0}
-              step={1}
-              style={{ width: "100%" }}
-              placeholder="Диаметр"
-            />
+          <Form.Item
+            name="diameter"
+            label="Диаметр ствола (см)"
+            rules={[{ required: true, message: "Введите диаметр" }]}
+          >
+            <InputNumber min={0} step={1} style={{ width: "100%" }} />
           </Form.Item>
-
-          <Form.Item name="number_of_barrels" label="Количество стволов (шт)">
-            <InputNumber
-              min={0}
-              step={1}
-              style={{ width: "100%" }}
-              placeholder="Количество стволов"
-            />
+          <Form.Item
+            name="number_of_barrels"
+            label="Количество стволов"
+            rules={[{ required: true, message: "Укажите количество" }]}
+          >
+            <InputNumber min={0} step={1} style={{ width: "100%" }} />
           </Form.Item>
-
-          <Form.Item name="crown_diameter" label="Диаметр кроны (м)">
-            <InputNumber
-              min={0}
-              step={1}
-              style={{ width: "100%" }}
-              placeholder="Диаметр кроны"
-            />
+          <Form.Item
+            name="crown_diameter"
+            label="Диаметр кроны (см)"
+            rules={[{ required: true, message: "Введите диаметр кроны" }]}
+          >
+            <InputNumber min={0} step={1} style={{ width: "100%" }} />
           </Form.Item>
         </>
       ),
@@ -324,41 +309,36 @@ const AddTreeModal = ({ isOpen, onClose, initialCoords }) => {
       title: "Файлы",
       content: (
         <>
-          <Form.Item name="description" label="Описание">
-            <TextArea rows={3} placeholder="Дополнительная информация" />
-          </Form.Item>
-
           <Form.Item
             name="photo"
             label="Фото дерева"
             valuePropName="fileList"
             getValueFromEvent={normFile}
-            rules={[
-              { required: true, message: "Пожалуйста, загрузите фото дерева" },
-            ]}
+            rules={[{ required: true, message: "Загрузите фото" }]}
           >
             <Upload
               name="photo"
               listType="picture"
-              beforeUpload={beforeUpploadPhoto}
+              multiple
+              // beforeUpload={beforeUploadPhoto}
+              beforeUpload={() => false}
             >
               <Button icon={<UploadOutlined />}>Загрузить фото</Button>
             </Upload>
           </Form.Item>
-
           <Form.Item
             name="document"
-            label="Дополнительные файлы"
+            label="Документы"
             valuePropName="fileList"
             getValueFromEvent={normFile}
-            rules={[
-              { required: true, message: "Пожалуйста, прикрепите документ" },
-            ]}
+            // rules={[{ required: true, message: "Прикрепите документы" }]}
           >
             <Upload
               name="document"
               multiple
-              beforeUpload={beforeUpploadDocument}
+              // beforeUpload={beforeUploadDocument}
+              beforeUpload={() => false}
+              accept=".pdf, .doc, .docx, .txt"
             >
               <Button icon={<UploadOutlined />}>Прикрепить файлы</Button>
             </Upload>
@@ -372,7 +352,7 @@ const AddTreeModal = ({ isOpen, onClose, initialCoords }) => {
     ["type", "adress", "latitude", "longitude"],
     [
       "statusId",
-      "envId",
+      "environmentId",
       "specialNoteId",
       "conditionId",
       "owner",
@@ -386,11 +366,14 @@ const AddTreeModal = ({ isOpen, onClose, initialCoords }) => {
     <Modal
       title="Добавить дерево"
       open={isOpen}
-      onCancel={onClose}
+      onCancel={() => {
+        form.resetFields();
+        onClose();
+      }}
       footer={null}
       width={800}
       centered
-      // destroyOnClose
+      destroyOnClose
     >
       <Steps current={currentStep} style={{ marginBottom: "24px" }}>
         {steps.map((item) => (
@@ -408,8 +391,7 @@ const AddTreeModal = ({ isOpen, onClose, initialCoords }) => {
             : null,
           adress: address,
         }}
-        isLoadingAddress={isLoadingAddress}
-        onFinish={handleFinish} // <--- добавь это!
+        onFinish={handleFinish}
       >
         {steps[currentStep].content}
       </Form>
@@ -429,7 +411,6 @@ const AddTreeModal = ({ isOpen, onClose, initialCoords }) => {
           <Button
             type="primary"
             onClick={handleFinish}
-            htmlType="submit"
             style={{
               backgroundColor: "#2c5c3f",
               borderColor: "#2c5c3f",

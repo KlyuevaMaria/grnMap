@@ -20,6 +20,7 @@ import {
   fetchSpecialNotes,
   fetchStatuses,
 } from "../store/trees/treeThunks";
+import { current } from "@reduxjs/toolkit";
 
 const { TextArea } = Input;
 
@@ -40,10 +41,11 @@ const FormCust = ({ initialValues = {} }) => {
   }, [dispatch]);
 
   const normFile = (e) => {
-    if (Array.isArray(e)){
-      return e
+    if (Array.isArray(e)) {
+      return e;
     }
-    return e && Array.isArray(e.fileList) ? e.fileList : []}
+    return e && Array.isArray(e.fileList) ? e.fileList : [];
+  };
 
   const beforeUpploadPhoto = (photo) => {
     const isJpgOrPng =
@@ -124,10 +126,14 @@ const FormCust = ({ initialValues = {} }) => {
         label="Адрес"
         rules={[{ required: true, message: "Введите адрес" }]}
       >
-        <Input placeholder="Адрес посадки дерева" />
+        <Input placeholder="Ближайший к дереву адрес" />
       </Form.Item>
 
-      <Form.Item name="latitude" label="Координаты широты">
+      <Form.Item
+        name="latitude"
+        label="Координаты широты"
+        rules={[{ required: true, message: "Введите широту" }]}
+      >
         <InputNumber
           min={0}
           step={1}
@@ -136,7 +142,11 @@ const FormCust = ({ initialValues = {} }) => {
         />
       </Form.Item>
 
-      <Form.Item name="longitude" label="Координаты долготы">
+      <Form.Item
+        name="longitude"
+        label="Координаты долготы"
+        rules={[{ required: true, message: "Введите долготу" }]}
+      >
         <InputNumber
           min={0}
           step={1}
@@ -146,54 +156,10 @@ const FormCust = ({ initialValues = {} }) => {
       </Form.Item>
 
       <Form.Item
-        name="owner"
-        label="Собственник"
-        rules={[{ required: true, message: "Введите владельца" }]}
+        name="statusId"
+        label="Статус"
+        rules={[{ required: true, message: "Выберите статус" }]}
       >
-        <Input placeholder="Собственник" />
-      </Form.Item>
-
-      <Form.Item name="height" label="Высота (м)">
-        <InputNumber
-          min={0}
-          step={0.1}
-          style={{ width: "100%" }}
-          placeholder="Введите высоту"
-        />
-      </Form.Item>
-
-      <Form.Item name="diameter" label="Диаметр ствола (м)">
-        <InputNumber
-          min={0}
-          step={1}
-          style={{ width: "100%" }}
-          placeholder="Введите диаметр"
-        />
-      </Form.Item>
-
-      <Form.Item name="number_of_barrels" label="Количество стволов (шт)">
-        <InputNumber
-          min={0}
-          step={1}
-          style={{ width: "100%" }}
-          placeholder="Введите количество стволов"
-        />
-      </Form.Item>
-
-      <Form.Item name="crown_diameter" label="Диаметр кроны (м)">
-        <InputNumber
-          min={0}
-          step={1}
-          style={{ width: "100%" }}
-          placeholder="Введите диаметр"
-        />
-      </Form.Item>
-
-      <Form.Item name="year_of_planting" label="Год посадки">
-        <DatePicker picker="year" style={{ width: "100%" }} />
-      </Form.Item>
-
-      <Form.Item name="statusId" label="Статус">
         <Select placeholder="Выберите статус">
           {statuses.map((status) => (
             <Select.Option key={status.id} value={status.id}>
@@ -203,7 +169,11 @@ const FormCust = ({ initialValues = {} }) => {
         </Select>
       </Form.Item>
 
-      <Form.Item name="specialNoteId" label="Особые пометки">
+      <Form.Item
+        name="specialNoteId"
+        label="Особые пометки"
+        rules={[{ required: true, message: "Выберите пометку" }]}
+      >
         <Select placeholder="Выберите пометку">
           {specialNotes.map((note) => (
             <Select.Option key={note.id} value={note.id}>
@@ -213,7 +183,11 @@ const FormCust = ({ initialValues = {} }) => {
         </Select>
       </Form.Item>
 
-      <Form.Item name="environmentId" label="Среда произрастания">
+      <Form.Item
+        name="environmentId"
+        label="Среда произрастания"
+        rules={[{ required: true, message: "Выберите среду" }]}
+      >
         <Select placeholder="Выберите среду">
           {environments.map((env) => (
             <Select.Option key={env.id} value={env.id}>
@@ -237,6 +211,79 @@ const FormCust = ({ initialValues = {} }) => {
         </Select>
       </Form.Item>
 
+      <Form.Item
+        name="owner"
+        label="Собственник"
+        rules={[{ required: true, message: "Введите владельца" }]}
+      >
+        <Input placeholder="Собственник" />
+      </Form.Item>
+
+      <Form.Item
+        name="year_of_planting"
+        label="Год посадки"
+        rules={[{ required: true, message: "Укажите год посадки" }]}
+      >
+        <DatePicker
+          picker="year"
+          style={{ width: "100%" }}
+          disabledDate={(current) =>
+            current && current.year() > new Date().getFullYear()
+          }
+        />
+      </Form.Item>
+      
+      <Form.Item
+        name="height"
+        label="Высота (см)"
+        rules={[{ required: true, message: "Введите высоту" }]}
+      >
+        <InputNumber
+          min={0}
+          step={0.1}
+          style={{ width: "100%" }}
+          placeholder="Введите высоту"
+        />
+      </Form.Item>
+
+      <Form.Item
+        name="diameter"
+        label="Диаметр ствола (см)"
+        rules={[{ required: true, message: "Введите диаметр" }]}
+      >
+        <InputNumber
+          min={0}
+          step={1}
+          style={{ width: "100%" }}
+          placeholder="Введите диаметр"
+        />
+      </Form.Item>
+
+      <Form.Item
+        name="number_of_barrels"
+        label="Количество стволов (шт)"
+        rules={[{ required: true, message: "Укажите количество" }]}
+      >
+        <InputNumber
+          min={0}
+          step={1}
+          style={{ width: "100%" }}
+          placeholder="Введите количество стволов"
+        />
+      </Form.Item>
+
+      <Form.Item
+        name="crown_diameter"
+        label="Диаметр кроны (см)"
+        rules={[{ required: true, message: "Введите диаметр кроны" }]}
+      >
+        <InputNumber
+          min={0}
+          step={1}
+          style={{ width: "100%" }}
+          placeholder="Введите диаметр"
+        />
+      </Form.Item>
 
       <Form.Item
         name="photo"
@@ -250,7 +297,8 @@ const FormCust = ({ initialValues = {} }) => {
         <Upload
           name="photo"
           listType="picture"
-          beforeUpload={beforeUpploadPhoto}
+          multiple
+          beforeUpload={() => false}
         >
           <Button icon={<UploadOutlined />}>Загрузить фото</Button>
         </Upload>
@@ -261,25 +309,20 @@ const FormCust = ({ initialValues = {} }) => {
         label="Дополнительные файлы"
         valuePropName="fileList"
         getValueFromEvent={normFile}
-        rules={[{ required: true, message: "Пожалуйста, прикрепите документ" }]}
+        // rules={[{ required: true, message: "Пожалуйста, прикрепите документ" }]}
       >
-        <Upload name="document" multiple beforeUpload={beforeUpploadDocument}>
+        <Upload
+          name="document"
+          multiple
+          beforeUpload={() => false}
+          accept=".pdf, .doc, .docx, .txt"
+        >
           <Button icon={<UploadOutlined />}>Прикрепить файлы</Button>
         </Upload>
       </Form.Item>
 
       <Form.Item>
-        <Button
-          type="primary"
-          htmlType="submit"
-          block
-          style={{
-            backgroundColor: "#2c5c3f",
-            borderColor: "#2c5c3f",
-            height: "45px",
-            fontWeight: "bold",
-          }}
-        >
+        <Button type="primary" htmlType="submit" block>
           Сохранить
         </Button>
       </Form.Item>

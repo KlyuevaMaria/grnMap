@@ -32,7 +32,7 @@ const UserTrees = () => {
 
   return (
     <Content style={{ padding: "40px" }}>
-      <Title level={3} style={{ color: "#e8552f", fontFamily: "inherit" }}>
+      <Title level={3} style={{ color: "#e8552f", fontFamily: "Poiret One" }}>
         Добавленные деревья
       </Title>
 

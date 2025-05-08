@@ -7,15 +7,6 @@ const { fileValidation } = require("../middleware/fileValidation");
 const authMiddleware = require("../middleware/authMiddleware");
 const router = express.Router();
 
-// router.post("/", validateCreateTree,
-//     (req, res, next) => {
-//       const errors = validationResult(req);
-//       if (!errors.isEmpty()) {
-//         return res.status(400).json({ errors: errors.array() });
-//       }
-//       next();
-//     },
-//     fileValidation, treeController.createTree);
 router.post("/create", authMiddleware, treeController.createTree);
 
 // router.get('/get-admin-trees', checkRoleMiddleware('ADMIN'), treeController.getAllTrees)

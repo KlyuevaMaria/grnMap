@@ -8,14 +8,12 @@ const {
   Condition,
 } = require("../models/treeModels");
 const uuid = require("uuid");
+const fs = require("fs");
 const path = require("path");
 const jwt = require("jsonwebtoken");
 const { User } = require("../models/userModels");
 const ApiError = require("../error/ApiError");
-const { log } = require("console");
-const { decode } = require("punycode");
-const { where } = require("sequelize");
-const sequelize = require("../db");
+const { where, Op } = require("sequelize");
 
 class TreeController {
   async createTree(req, res, next) {
@@ -160,6 +158,8 @@ class TreeController {
         num_of_bar,
         crown_diameter,
         condition,
+        removedPhotos = "[]",
+        removedDocuments = "[]",
       } = req.body;
 
       const tree = await Tree.findByPk(id);
@@ -180,7 +180,7 @@ class TreeController {
       if (num_of_bar !== undefined) updates.number_of_barrels = num_of_bar;
       if (crown_diameter !== undefined) updates.crown_diameter = crown_diameter;
 
-      // асинхронный поиск связанных моделей, если переданы
+      //поиск связанных моделей, если переданы
       if (status) {
         const statusObj = await Status.findOne({
           where: { status_name: status },
@@ -213,88 +213,80 @@ class TreeController {
         updates.conditionId = conditionObj.id;
       }
 
-      //Фото
-      if (req.files?.photo) {
-        const photoFile = Array.isArray(req.files.photo)
-          ? req.files.photo[0]
-          : req.files.photo;
-        const fileName = uuid.v4() + path.extname(photoFile.name);
-        const filePath = path.resolve(
-          __dirname,
-          "..",
-          "static",
-          "photo",
-          fileName
-        );
-
-        // удалить старое фото
-        if (tree.photo?.name) {
-          const oldPath = path.resolve(
+      // Удаление фото
+      const removedPhotoNames = JSON.parse(removedPhotos);
+      if (removedPhotoNames.length > 0) {
+        const photos = await Photo.findAll({
+          where: { name: { [Op.in]: removedPhotoNames }, treeId: tree.id },
+        });
+        for (const photo of photos) {
+          const photoPath = path.resolve(
             __dirname,
             "..",
             "static",
             "photo",
-            tree.photo.name
+            photo.name
           );
-          if (fs.existsSync(oldPath)) {
-            fs.unlinkSync(oldPath);
-          }
-        }
-        await photoFile.mv(filePath);
-
-        if (tree.photoId) {
-          // обновляем существующее фото
-          await Photo.update(
-            { name: fileName },
-            { where: { id: tree.photoId } }
-          );
-        } else {
-          // создаём новое фото, если его ещё не было
-          const newPhoto = await Photo.create({ name: fileName });
-          updates.photoId = newPhoto.id;
+          if (fs.existsSync(photoPath)) fs.unlinkSync(photoPath);
+          await photo.destroy();
         }
       }
 
-      // Документ
-      if (req.files?.document) {
-        const docFile = Array.isArray(req.files.document)
-          ? req.files.document[0]
-          : req.files.document;
-        const docName = uuid.v4() + path.extname(docFile.name);
-        const docPath = path.resolve(
-          __dirname,
-          "..",
-          "static",
-          "documents",
-          docName
-        );
-
-        // удалить старый файл
-        if (tree.document?.name) {
-          const oldDocPath = path.resolve(
+      // Удаление документов
+      const removedDocNames = JSON.parse(removedDocuments);
+      if (removedDocNames.length > 0) {
+        const docs = await Document.findAll({
+          where: { name: { [Op.in]: removedDocNames }, treeId: tree.id },
+        });
+        for (const doc of docs) {
+          const docPath = path.resolve(
             __dirname,
             "..",
             "static",
             "documents",
-            tree.document.name
+            doc.name
           );
-          if (fs.existsSync(oldDocPath)) {
-            fs.unlinkSync(oldDocPath);
-          }
-        }
-        await docFile.mv(docPath);
-
-        if (tree.documentId) {
-          await Document.update(
-            { name: docName },
-            { where: { id: tree.documentId } }
-          );
-        } else {
-          const newDoc = await Document.create({ name: docName });
-          updates.documentId = newDoc.id;
+          if (fs.existsSync(docPath)) fs.unlinkSync(docPath);
+          await doc.destroy();
         }
       }
 
+      // Загрузка новых фото
+      const newPhotos = req.files?.newPhotos;
+      if (newPhotos) {
+        const files = Array.isArray(newPhotos) ? newPhotos : [newPhotos];
+        for (const file of files) {
+          const fileName = uuid.v4() + path.extname(file.name);
+          const filePath = path.resolve(
+            __dirname,
+            "..",
+            "static",
+            "photo",
+            fileName
+          );
+          await file.mv(filePath);
+          await Photo.create({ name: fileName, treeId: tree.id });
+        }
+      }
+
+      // Загрузка новых документов
+      const newDocs = req.files?.newDocuments;
+      if (newDocs) {
+        const files = Array.isArray(newDocs) ? newDocs : [newDocs];
+        for (const file of files) {
+          const docName = uuid.v4() + path.extname(file.name);
+          const docPath = path.resolve(
+            __dirname,
+            "..",
+            "static",
+            "documents",
+            docName
+          );
+          await file.mv(docPath);
+          await Document.create({ name: docName, treeId: tree.id });
+        }
+      }
+      
       await tree.update(updates);
 
       return res.json({ message: "Дерево успешно обновлено", tree });
@@ -352,24 +344,24 @@ class TreeController {
     }
   }
 
-  //Удаление дерева с причиной
+  //Удаление дерева
   async deleteTree(req, res, next) {
     try {
       const id = req.params.id;
-      const { reason } = req.body;
+      // const { reason } = req.body;
 
       const tree = await Tree.findByPk(id);
       if (!tree) {
         return res.status(404).json({ message: "Дерево не найдено" });
       }
-      if (!reason) {
-        return res.status(404).json({ message: "Введите причину удаления" });
-      }
+      // if (!reason) {
+      //   return res.status(404).json({ message: "Введите причину удаления" });
+      // }
 
       // Можно логировать причину удаления в отдельную таблицу, если нужно
       await tree.destroy();
 
-      return res.json({ message: `Дерево удалено. Причина: ${reason}` });
+      return res.json({ message: `Дерево #${id} удалено` });
     } catch (e) {
       next(ApiError.badRequest(e.message));
     }

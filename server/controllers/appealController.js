@@ -39,10 +39,10 @@ class AppealController {
       }
 
       // Получение токена из заголовка Authorization
-      const token = req.headers.authorization?.split(" ")[1];
-      if (!token) {
-        return res.status(401).json({ message: "Токен не предоставлен" });
-      }
+      // const token = req.headers.authorization?.split(" ")[1];
+      // if (!token) {
+      //   return res.status(401).json({ message: "Токен не предоставлен" });
+      // }
 
       const appeal = await Appeal.create({
         userId: req.user.id,
@@ -96,10 +96,10 @@ class AppealController {
       }
 
       // Получение токена из заголовка Authorization
-      const token = req.headers.authorization?.split(" ")[1];
-      if (!token) {
-        return res.status(401).json({ message: "Токен не предоставлен" });
-      }
+      // const token = req.headers.authorization?.split(" ")[1];
+      // if (!token) {
+      //   return res.status(401).json({ message: "Токен не предоставлен" });
+      // }
 
       // Сохраняем ответ
       const response = await Response.create({
@@ -108,7 +108,7 @@ class AppealController {
         description,
       });
 
-          // Обновляем статус обращения на "resolved"
+      // Обновляем статус обращения на "resolved"
       appeal.status='resolved'
       await appeal.save()
 

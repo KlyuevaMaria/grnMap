@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchUserAppeals } from "../store/userAppealsSlice";
-import Title from "antd/es/typography/Title";
-import { Button, Card, Col, Empty, Row, Spin, Tag } from "antd";
+import { Button, Card, Col, Collapse, Empty, Row, Spin, Tag, Typography } from "antd";
 import NewAppealForm from "./NewAppealForm";
 import { Content } from "antd/es/layout/layout";
+const { Title, Text } = Typography;
+const { Panel } = Collapse;
+
 
 const UserAppeals = () => {
   const dispatch = useDispatch();
@@ -38,8 +40,9 @@ const UserAppeals = () => {
 
   return (
     <Content style={{ padding: "40px" }}>
-      <Title level={3} style={{ color: "#e8552f", fontFamily: "inherit" }}>
-        Размещённые обращения
+
+      <Title level={3} style={{ color: "#e8552f", fontFamily: "Poiret One" }}>
+      Размещённые обращения
       </Title>
 
       <Button
@@ -87,7 +90,22 @@ const UserAppeals = () => {
                     <strong>Описание:</strong>
                     <br /> {appeal.description}
                   </p>
-                  {/* блок ответа */}
+                  
+                  {appeal.response ? (
+                  <Collapse ghost>
+                    <Panel header="Показать ответ" key="1">
+                      <Text strong>Ответ:</Text>
+                      <p>{appeal.response.description}</p>
+                      <Text type="secondary">
+                        Ответил: {appeal.response.user?.name}{" "}
+                        {appeal.response.user?.surname}
+                      </Text>
+                    </Panel>
+                  </Collapse>
+                ) : (
+                  <Text type="secondary">Ответ пока не дан</Text>
+                )}
+                  {/* блок ответа
                   {appeal.responses && appeal.responses.length > 0 ? (
                     appeal.responses.map((response) => (
                       <div
@@ -110,7 +128,7 @@ const UserAppeals = () => {
                     <p style={{ marginTop: "10px", color: "#999" }}>
                       Ответ администратора пока отсутствует
                     </p>
-                  )}
+                  )} */}
                 </Card>
               </Col>
             ))}

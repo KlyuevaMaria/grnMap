@@ -6,7 +6,7 @@ import {
   useNavigate,
   useLocation,
 } from "react-router-dom";
-import { Button, Layout, Menu } from "antd";
+import { Button, Layout, Menu, Grid } from "antd";
 import {
   BulbOutlined,
   EnvironmentOutlined,
@@ -21,23 +21,36 @@ import TreeListPage from "./admin/TreeListPage";
 import TreeCreatePage from "./admin/TreeCreatePage";
 import AdminAppeals from "./admin/AdminAppeals";
 import PropertyreatePage from "./admin/PropertyreatePage";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 const { Content, Sider } = Layout;
+const { useBreakpoint } = Grid;
 
 const AdminPanel = () => {
+  const screens = useBreakpoint();
+  const isMobile = !screens.md;
+  const [collapsed, setCollapsed] = useState(isMobile);
+
   const navigate = useNavigate();
   const location = useLocation();
   const user = useSelector((state) => state.auth.user);
-  const [collapsed, setCollapsed] = useState(false);
+
+ useEffect(() => {
+    setCollapsed(isMobile);
+  }, [isMobile]);
 
   if (!user || user.role !== "ADMIN") {
     return <Navigate to="/" />;
   }
 
   const handleMenuClick = ({ key }) => {
-    navigate(key);
+    navigate(key); // Переход по маршруту
+    if (isMobile) {
+      setCollapsed(true);
+    }
   };
+
+ 
 
   const toggleCollapsed = () => {
     setCollapsed(!collapsed);
@@ -46,30 +59,43 @@ const AdminPanel = () => {
   return (
     <Layout style={{ minHeight: "100vh", backgroundColor: "#f8f8ee" }}>
       <Sider
-        width={250}
+        collapsible
+        collapsed={collapsed}
+        onCollapse={(value) => setCollapsed(value)}
+        breakpoint="md"
+        collapsedWidth={isMobile ? 0 : 80}
+        trigger={
+          <div
+            style={{
+              textAlign: "center",
+              padding: "10px 0",
+              backgroundColor: "#F8C7CC",
+              color: "#e8552f",
+              fontWeight: "bold",
+              cursor: "pointer",
+            }}
+          >
+            <Button
+              style={{ backgroundColor: "#F8C7CC", border: "none" }}
+              onClick={toggleCollapsed}
+            >
+              {collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
+            </Button>
+          </div>
+        }
         style={{
           backgroundColor: "#f8f8ee",
           borderRight: "1px solid #ddd",
-          padding: "32px 0",
+          // padding: "72px 0",
         }}
       >
-        <div style={{ textAlign: "center", marginBottom: 20 }}>
-          <Button
-            // icon={<MenuOutlined />}
-            // shape="circle"
-            style={{ backgroundColor: "#F8C7CC", border: "none" }}
-            onClick={toggleCollapsed}
-          >
-            {collapsed ? <MenuUnfoldOutlined  /> : <MenuFoldOutlined />}
-          </Button>
-        </div>
+        <div style={{ height: 64 }} />
+
         <Menu
-          mode="vertical"
+          mode="inline"
           onClick={handleMenuClick}
-          // selectedKeys={[location.pathname]}
-          style={{ backgroundColor: "#f8f8ee", border: "none" }}
-          defaultOpenKeys={['/admin/trees']}
-          inlineCollapsed={collapsed}
+          selectedKeys={[location.pathname]}
+          style={{ backgroundColor: "#f8f8ee", paddingTop: 16 }}
         >
           <Menu.Item
             key="/admin/trees"
@@ -103,7 +129,12 @@ const AdminPanel = () => {
       </Sider>
 
       <Layout style={{ backgroundColor: "#f8f8ee" }}>
-        <Content style={{ padding: "40px" }}>
+        <Content
+          style={{
+            padding: isMobile ? "20px 10px" : "40px",
+            transition: "padding 0.3s",
+          }}
+        >
           <Routes>
             <Route path="trees" element={<TreeListPage />} />
             <Route path="trees/create" element={<TreeCreatePage />} />

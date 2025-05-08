@@ -3,9 +3,8 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchTreeById, updateTreeById } from "../../store/trees/treeThunks";
 import { Card, message, Spin } from "antd";
-import TreeForm from "../../components/TreeForm";
-import FormCust from "../../components/FormCust";
 import EditTreeForm from "../../components/EditTreeForm";
+import Title from "antd/es/typography/Title";
 
 const TreeEditPage = () => {
   const { id } = useParams();
@@ -17,35 +16,57 @@ const TreeEditPage = () => {
     dispatch(fetchTreeById(id));
   }, [dispatch, id]);
 
-  const handleSubmit = async (values) => {
-    const transformed = {
-      type: values.type,
-      adress: values.adress,
-      latitude: values.latitude,
-      longitude: values.longitude,
-      owner: values.owner,
-      height: values.height,
-      diameter: values.diameter,
-      num_of_bar: values.num_of_bar,
-      crown_diameter: values.crown_diameter,
-      year: values.year?.year?.() || null,
-      status: values.status,        // это строка
-      note: values.note,            // id
-      env: values.env,              // id
-      condition: values.condition,  // id
-      description: values.description,
-    };
-  
+  const handleSubmit = async ({
+    removedPhotos,
+    removedDocuments,
+    ...values
+  }) => {
+    const formData = new FormData();
+
+    formData.append("type", values.type);
+    formData.append("adress", values.adress);
+    formData.append("latitude", values.latitude);
+    formData.append("longitude", values.longitude);
+    formData.append("owner", values.owner);
+    formData.append("height", values.height);
+    formData.append("diameter", values.diameter);
+    formData.append("num_of_bar", values.num_of_bar);
+    formData.append("crown_diameter", values.crown_diameter);
+    formData.append("year", values.year?.year() || ""); // DatePicker → year
+    formData.append("status", values.status || "");
+    formData.append("note", values.note || "");
+    formData.append("env", values.env || "");
+    formData.append("condition", values.condition || "");
+    formData.append("description", values.description || "");
+    // Удалённые
+    formData.append("removedPhotos", JSON.stringify(removedPhotos));
+    formData.append("removedDocuments", JSON.stringify(removedDocuments));
+
+    // Загрузка новых фото
+    values.photo?.forEach((file) => {
+      if (file.originFileObj) {
+        formData.append("newPhotos", file.originFileObj);
+      }
+    });
+
+    // Загрузка новых документов
+    values.document?.forEach((file) => {
+      if (file.originFileObj) {
+        formData.append("newDocuments", file.originFileObj);
+      }
+    });
+
     try {
-      await dispatch(updateTreeById({ id, data: transformed })).unwrap();
+      await dispatch(updateTreeById({ id, data: formData })).unwrap();
       message.success("Дерево успешно обновлено!");
+      // setRemovedPhotos([]);
+      // setRemovedDocuments([]);
       navigate(`/tree/${id}`);
     } catch (error) {
       console.error("Ошибка:", error);
       message.error(error?.response?.data?.message || "Ошибка обновления");
     }
   };
-  
 
   if (loading || !tree) {
     return (
@@ -62,7 +83,28 @@ const TreeEditPage = () => {
   }
 
   return (
-    <div style={{ maxWidth: "900px", margin: "50px auto", padding: "0 20px" }}>
+    <div
+      style={{
+        maxWidth: "900px",
+        margin: "60px auto",
+        padding: "40px 20px",
+        background: "#F7F4EF",
+        borderRadius: "12px",
+        fontFamily: "'Bitter', serif",
+        boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
+      }}
+    >
+      <Title
+        level={2}
+        style={{
+          textAlign: "center",
+          color: "#D5573B",
+          fontFamily: "'Poiret One', cursive",
+          marginBottom: "30px",
+        }}
+      >
+        Редактирование дерева
+      </Title>
       <Card
         title="Редактирование дерева"
         style={{
@@ -70,8 +112,8 @@ const TreeEditPage = () => {
           boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
         }}
       >
-        <EditTreeForm initialValues={tree} onFinish={handleSubmit} />
-        {/* <TreeForm initialValues={tree} onFinish={handleSubmit} /> */}
+        <EditTreeForm initialValues={tree} onFinish={handleSubmit} />     
+
       </Card>
     </div>
   );

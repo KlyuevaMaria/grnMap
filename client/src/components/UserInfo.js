@@ -17,12 +17,7 @@ const UserInfo = () => {
 
   const dispatch = useDispatch();
   const { data: user, loading } = useSelector((state) => state.user);
-  // const user = useSelector((state) => state.user.data); // Получаем данные пользователя из Redux
-  // const loading = useSelector((state) => state.user.loading); // Получаем состояние загрузки
 
-  // useEffect(() => {
-  //   dispatch(fetchCurrentUser());
-  // }, [dispatch]);
 
   useEffect(() => {
     if (user && form) {
@@ -39,8 +34,8 @@ const UserInfo = () => {
     <Layout style={{ minHeight: "100vh", backgroundColor: "#f8f8ee" }}>
       <Layout style={{ backgroundColor: "#f8f8ee" }}>
         <Content style={{ padding: "40px" }}>
-          <Title level={2} style={{ color: "#e8552f", fontFamily: "inherit" }}>
-            Профиль
+        <Title level={3} style={{ color: "#e8552f", fontFamily: "Poiret One" }}>
+        Профиль
           </Title>
           {loading ? (
             <Spin indicator={<LoadingOutlined spin />} size="large" />
@@ -80,7 +75,7 @@ const UserInfo = () => {
                 <Input disabled />
               </Form.Item>
 
-              <Form.Item>
+              {/* <Form.Item>
                 <Button
                   type="primary"
                   htmlType="submit"
@@ -94,7 +89,7 @@ const UserInfo = () => {
                 >
                   Изменить
                 </Button>
-              </Form.Item>
+              </Form.Item> */}
             </Form>
           )}{" "}
         </Content>

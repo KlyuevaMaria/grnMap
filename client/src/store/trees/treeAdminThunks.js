@@ -111,7 +111,9 @@ export const updateNote = createAsyncThunk(
   "trees/updateNote",
   async ({ id, note }, thunkAPI) => {
     try {
-     const response =  await axiosInstance.put(`/tree/note/update/${id}`, { note });
+      const response = await axiosInstance.put(`/tree/note/update/${id}`, {
+        note,
+      });
       return response.data;
     } catch (error) {
       return thunkAPI.rejectWithValue(error);
@@ -123,10 +125,14 @@ export const updateEnv = createAsyncThunk(
   "trees/updateEnv",
   async ({ id, name }, thunkAPI) => {
     try {
-     const response =  await axiosInstance.put(`/tree/env/update/${id}`, { name });
+      const response = await axiosInstance.put(`/tree/env/update/${id}`, {
+        name,
+      });
       return response.data;
     } catch (error) {
-      return thunkAPI.rejectWithValue(error.response?.data || "Ошибка при обновлении среды");
+      return thunkAPI.rejectWithValue(
+        error.response?.data || "Ошибка при обновлении среды"
+      );
     }
   }
 );
@@ -135,10 +141,14 @@ export const updateCondition = createAsyncThunk(
   "trees/updateCondition",
   async ({ id, name }, thunkAPI) => {
     try {
-     const response =  await axiosInstance.put(`/tree/condition/update/${id}`, { name });
+      const response = await axiosInstance.put(`/tree/condition/update/${id}`, {
+        name,
+      });
       return response.data;
     } catch (error) {
-      return thunkAPI.rejectWithValue(error.response?.data || "Ошибка при обновлении состояния");
+      return thunkAPI.rejectWithValue(
+        error.response?.data || "Ошибка при обновлении состояния"
+      );
     }
   }
 );
@@ -147,11 +157,27 @@ export const updateStatus = createAsyncThunk(
   "trees/updateStatus",
   async ({ id, name }, thunkAPI) => {
     try {
-     const response =  await axiosInstance.put(`/tree/status/update/${id}`, { name });
+      const response = await axiosInstance.put(`/tree/status/update/${id}`, {
+        name,
+      });
       return response.data;
     } catch (error) {
-      return thunkAPI.rejectWithValue(error.response?.data || "Ошибка при обновлении статуса");
+      return thunkAPI.rejectWithValue(
+        error.response?.data || "Ошибка при обновлении статуса"
+      );
     }
   }
 );
 
+// удалить дерево
+export const deleteTree = createAsyncThunk(
+  "trees/deleteTree",
+  async (id, thunkAPI) => {
+    try {
+      await axiosInstance.delete(`/tree/admin/tree/${id}`);
+      return id;
+    } catch (error) {
+      return error.response?.data?.message || "Ошибка при удалении дерева";
+    }
+  }
+);

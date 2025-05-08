@@ -5,8 +5,8 @@ const { User } = require("./userModels");
 const Tree = sequelize.define("tree", {
   id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
   type: { type: DataTypes.STRING, allowNull: false },
-  latitude: { type: DataTypes.DECIMAL(9, 7), allowNull: false },
-  longitude: { type: DataTypes.DECIMAL(9, 7), allowNull: false },
+  latitude: { type: DataTypes.DECIMAL(10, 7), allowNull: false },
+  longitude: { type: DataTypes.DECIMAL(10, 7), allowNull: false },
   adress: { type: DataTypes.STRING, allowNull: false },
   owner: { type: DataTypes.STRING, allowNull: false },
   year_of_planting: { type: DataTypes.INTEGER, allowNull: false },
@@ -14,7 +14,6 @@ const Tree = sequelize.define("tree", {
   diameter: { type: DataTypes.DECIMAL(4, 2), allowNull: false },
   number_of_barrels: { type: DataTypes.INTEGER, allowNull: false },
   crown_diameter: { type: DataTypes.DECIMAL(5, 2), allowNull: false },
-  //   date_added: { type: DataTypes.STRING, allowNull: false },
 });
 
 const Status = sequelize.define("status", {

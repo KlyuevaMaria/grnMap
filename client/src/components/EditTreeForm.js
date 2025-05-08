@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Form,
   Input,
@@ -8,6 +8,7 @@ import {
   Upload,
   Select,
   message,
+  Modal,
 } from "antd";
 import { UploadOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
@@ -29,6 +30,9 @@ const EditTreeForm = ({ initialValues = {}, onFinish }) => {
     (state) => state.trees
   );
 
+  const [removedPhotos, setRemovedPhotos] = useState([]);
+  const [removedDocuments, setRemovedDocuments] = useState([]);
+
   useEffect(() => {
     dispatch(fetchConditions());
     dispatch(fetchEnvironments());
@@ -41,31 +45,30 @@ const EditTreeForm = ({ initialValues = {}, onFinish }) => {
     return e && Array.isArray(e.fileList) ? e.fileList : [];
   };
 
-  const mapFile = (file, pathPrefix) => [
-    {
-      uid: "-1",
+  const mapFile = (files, pathPrefix) => {
+    if (!files) return [];
+    const array = Array.isArray(files) ? files : [files];
+    return array.map((file, index) => ({
+      uid: `${file.id || index}`,
       name: file.name,
       status: "done",
       url: `http://localhost:8080/static/${pathPrefix}/${file.name}`,
-    },
-  ];
+    }));
+  };
 
   const transformedInitialValues = {
     ...initialValues,
-    num_of_bar:initialValues.number_of_barrels,
+    num_of_bar: initialValues.number_of_barrels,
     status: initialValues.status?.status_name,
     note: initialValues.special_note?.note,
     env: initialValues.environment?.name,
     condition: initialValues.condition?.name,
-    // year: initialValues?.year_of_planting
-    //   ? dayjs(String(initialValues.year_of_planting), "YYYY")
-    //   : null,
     year: initialValues.year_of_planting
-  ? dayjs(initialValues.year_of_planting.toString(), "YYYY")
-  : null,
-    photo: initialValues.photo ? mapFile(initialValues.photo, "photo") : [],
-    document: initialValues.document
-      ? mapFile(initialValues.document, "documents")
+      ? dayjs(initialValues.year_of_planting.toString(), "YYYY")
+      : null,
+    photo: initialValues.photos ? mapFile(initialValues.photos, "photo") : [],
+    document: initialValues.documents
+      ? mapFile(initialValues.documents, "documents")
       : [],
   };
   console.log("transformedInitialValues", transformedInitialValues);
@@ -74,7 +77,9 @@ const EditTreeForm = ({ initialValues = {}, onFinish }) => {
     <Form
       form={form}
       layout="vertical"
-      onFinish={onFinish}
+      onFinish={(values) => {
+        onFinish({ ...values, removedPhotos, removedDocuments });
+      }}
       initialValues={transformedInitialValues}
       style={{ maxWidth: "600px", margin: "0 auto" }}
     >
@@ -174,10 +179,6 @@ const EditTreeForm = ({ initialValues = {}, onFinish }) => {
         </Select>
       </Form.Item>
 
-      <Form.Item name="description" label="Описание">
-        <TextArea rows={4} />
-      </Form.Item>
-
       <Form.Item
         name="photo"
         label="Фото дерева"
@@ -185,9 +186,26 @@ const EditTreeForm = ({ initialValues = {}, onFinish }) => {
         getValueFromEvent={normFile}
       >
         <Upload
-          name="photo"
+          name="newPhotos"
           listType="picture"
-          beforeUpload={() => false} // disable upload
+          beforeUpload={() => false}
+          onRemove={(file) => {
+            Modal.confirm({
+              title: "Вы уверены, что хотите удалить это фото?",
+              content: file.name,
+              okText: "Удалить",
+              cancelText: "Отмена",
+              onOk() {
+                setRemovedPhotos((prev) => [...prev, file.name]);
+                form.setFieldValue(
+                  "photo",
+                  form.getFieldValue("photo").filter((f) => f.uid !== file.uid)
+                );
+              },
+            });
+
+            return false;
+          }}
         >
           <Button icon={<UploadOutlined />}>Загрузить фото</Button>
         </Upload>
@@ -199,13 +217,49 @@ const EditTreeForm = ({ initialValues = {}, onFinish }) => {
         valuePropName="fileList"
         getValueFromEvent={normFile}
       >
-        <Upload name="document" multiple beforeUpload={() => false}>
+        <Upload
+          name="newDocuments"
+          multiple
+          beforeUpload={() => false}
+          onRemove={(file) => {
+            Modal.confirm({
+              title: "Удалить документ?",
+              content: file.name,
+              okText: "Удалить",
+              cancelText: "Отмена",
+              onOk() {
+                setRemovedDocuments((prev) => [...prev, file.name]);
+                form.setFieldValue(
+                  "document",
+                  form
+                    .getFieldValue("document")
+                    .filter((f) => f.uid !== file.uid)
+                );
+              },
+            });
+
+            return false;
+          }}
+        >
           <Button icon={<UploadOutlined />}>Прикрепить файлы</Button>
         </Upload>
       </Form.Item>
 
       <Form.Item>
-        <Button type="primary" htmlType="submit" block>
+        <Button
+          type="primary"
+          htmlType="submit"
+          block
+          style={{
+            backgroundColor: "#D5573B",
+            // borderColor: "#F8C7CC",
+            color: "F7F4EF",
+            // fontWeight: "bold",
+            // height: "45px",
+            fontFamily: "Poiret One",
+          }}
+        >
+          {" "}
           Сохранить изменения
         </Button>
       </Form.Item>
