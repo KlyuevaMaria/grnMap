@@ -1,4 +1,4 @@
-import { Button, Modal, message } from "antd";
+import { Button, Modal, Tooltip, message } from "antd";
 import { ExclamationCircleOutlined } from "@ant-design/icons";
 import { useNavigate, useParams } from "react-router-dom";
 import { deleteTree } from "../store/trees/treeAdminThunks";
@@ -32,9 +32,15 @@ const DeleteTreeButton = () => {
   };
 
   return (
-    <Button danger onClick={showDeleteConfirm}>
-      Удалить дерево
-    </Button>
+    <Tooltip
+      placement="topLeft"
+      title="Удалить дерево без возможности восстановления"
+      color="red"
+    >
+      <Button danger onClick={showDeleteConfirm}>
+        Удалить дерево
+      </Button>
+    </Tooltip>
   );
 };
 

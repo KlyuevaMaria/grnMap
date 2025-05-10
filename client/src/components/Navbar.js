@@ -53,8 +53,8 @@ const Navbar = () => {
     // Только для НЕавторизованных
     ...(!isLoggedIn
       ? [
-          { key: "register", label: "Регистрация" },
-          { key: "login", label: "Вход" },
+          // { key: "register", label: "Регистрация" },
+          { key: "login", label: "Войти" },
         ]
       : []),
     // Только для авторизованных

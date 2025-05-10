@@ -11,6 +11,7 @@ import {
   Empty,
   Carousel,
   Layout,
+  Tooltip,
 } from "antd";
 import { SmileOutlined } from "@ant-design/icons";
 import DeleteTreeButton from "../../components/DeleteTreeButton";
@@ -175,7 +176,11 @@ const TreeDetailPage = () => {
             </Descriptions.Item>
           </Descriptions>
         </Card>
-        <DeleteTreeButton />
+        <div
+          style={{ display: "flex", justifyContent: "flex-end", marginTop: 16 }}
+        >
+          <DeleteTreeButton />
+        </div>
       </div>
     </Layout>
   );

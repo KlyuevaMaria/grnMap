@@ -109,19 +109,14 @@ export const createTree = createAsyncThunk(
           formData.append("photo", fileObj.originFileObj);
         });
       }
-      // if (formValues.photo && formValues.photo.length > 0) {
-      //   formData.append("photo", formValues.photo[0].originFileObj);
-      // }
+      
       // // Документ 
       if (formValues.document && formValues.document.length > 0) {
         formValues.document.forEach((fileObj) => {
           formData.append("document", fileObj.originFileObj);
         });
       }
-      // if (formValues.document && formValues.document.length > 0) {
-      //   formData.append("document", formValues.document[0].originFileObj);
-      // }
-
+     
       for (let [key, val] of formData.entries()) {
         if (val instanceof File) {
           console.log(`${key}: ${val.name} (${val.type}, ${val.size} bytes)`);
@@ -138,7 +133,6 @@ export const createTree = createAsyncThunk(
       return res.data;
     } catch (error) {
       return thunkAPI.rejectWithValue(
-        // error
         error.response?.data || "Ошибка при добавлении дерева"
       );
     }

@@ -188,139 +188,173 @@ const PropertyreatePage = () => {
       >
         Характеристики деревьев
       </Title>
-      
-        <Tabs activeKey={activeTab} onChange={setActiveTab} centered>
-          <TabPane tab="Статусы" key="status">
-            <Form
-              form={forms.status}
-              onFinish={(values) =>
-                handleSubmit(values, "status", createStatus, fetchStatuses)
-              }
-              layout="vertical"
-            >
-              <Form.Item
-                name="name"
-                label="Название статуса"
-                rules={[{ required: true, message: "Введите статус" }]}
-              >
-                <Input placeholder="Например: Сохранить" />
-              </Form.Item>
-              <Button
-                htmlType="submit"
-                type="primary"
-                block
-                style={{ marginBottom: 10 }}
-              >
-                {editItems.status ? "Сохранить изменения" : "Добавить статус"}
-              </Button>
-            </Form>
-            {renderList(
-              statuses,
-              "status",
-              "status_name",
-              fetchStatuses,
-              deleteStatus
-            )}
-          </TabPane>
 
-          <TabPane tab="Особые пометки" key="note">
-            <Form
-              form={forms.note}
-              onFinish={(values) =>
-                handleSubmit(
-                  values,
+      <Tabs
+        activeKey={activeTab}
+        onChange={setActiveTab}
+        centered
+        items={[
+          {
+            key: "status",
+            label: "Статусы",
+            children: (
+              <>
+                <Form
+                  form={forms.status}
+                  onFinish={(values) =>
+                    handleSubmit(values, "status", createStatus, fetchStatuses)
+                  }
+                  layout="vertical"
+                >
+                  <Form.Item
+                    name="name"
+                    label="Название статуса"
+                    rules={[{ required: true, message: "Введите статус" }]}
+                  >
+                    <Input placeholder="Например: Сохранить" />
+                  </Form.Item>
+                  <Button
+                    htmlType="submit"
+                    type="primary"
+                    block
+                    style={{ marginBottom: 10 }}
+                  >
+                    {editItems.status
+                      ? "Сохранить изменения"
+                      : "Добавить статус"}
+                  </Button>
+                </Form>
+                {renderList(
+                  statuses,
+                  "status",
+                  "status_name",
+                  fetchStatuses,
+                  deleteStatus
+                )}
+              </>
+            ),
+          },
+          {
+            key: "note",
+            label: "Особые пометки",
+            children: (
+              <>
+                <Form
+                  form={forms.note}
+                  onFinish={(values) =>
+                    handleSubmit(
+                      values,
+                      "note",
+                      createSpecialNote,
+                      fetchSpecialNotes
+                    )
+                  }
+                  layout="vertical"
+                >
+                  <Form.Item
+                    name="note"
+                    label="Текст пометки"
+                    rules={[{ required: true, message: "Введите пометку" }]}
+                  >
+                    <Input placeholder="Например: Не пересаживать" />
+                  </Form.Item>
+                  <Button htmlType="submit" type="primary" block>
+                    {editItems.note
+                      ? "Сохранить изменения"
+                      : "Добавить пометку"}
+                  </Button>
+                </Form>
+                {renderList(
+                  specialNotes,
                   "note",
-                  createSpecialNote,
-                  fetchSpecialNotes
-                )
-              }
-              layout="vertical"
-            >
-              <Form.Item
-                name="note"
-                label="Текст пометки"
-                rules={[{ required: true, message: "Введите пометку" }]}
-              >
-                <Input placeholder="Например: Не пересаживать" />
-              </Form.Item>
-              <Button htmlType="submit" type="primary" block>
-                {editItems.note ? "Сохранить изменения" : "Добавить пометку"}
-              </Button>
-            </Form>
-            {renderList(
-              specialNotes,
-              "note",
-              "note",
-              fetchSpecialNotes,
-              deleteNote
-            )}
-          </TabPane>
+                  "note",
+                  fetchSpecialNotes,
+                  deleteNote
+                )}
+              </>
+            ),
+          },
 
-          <TabPane tab="Среды" key="env">
-            <Form
-              form={forms.env}
-              onFinish={(values) =>
-                handleSubmit(values, "env", createEnv, fetchEnvironments)
-              }
-              layout="vertical"
-            >
-              <Form.Item
-                name="name"
-                label="Название среды"
-                rules={[{ required: true, message: "Введите название среды" }]}
-              >
-                <Input placeholder="Например: Парк" />
-              </Form.Item>
-              <Button htmlType="submit" type="primary" block>
-                {editItems.env ? "Сохранить изменения" : "Добавить среду"}
-              </Button>
-            </Form>
-            {renderList(
-              environments,
-              "env",
-              "name",
-              fetchEnvironments,
-              deleteEnv
-            )}
-          </TabPane>
+          {
+            key: "env",
+            label: "Среды",
+            children: (
+              <>
+                <Form
+                  form={forms.env}
+                  onFinish={(values) =>
+                    handleSubmit(values, "env", createEnv, fetchEnvironments)
+                  }
+                  layout="vertical"
+                >
+                  <Form.Item
+                    name="name"
+                    label="Название среды"
+                    rules={[
+                      { required: true, message: "Введите название среды" },
+                    ]}
+                  >
+                    <Input placeholder="Например: Парк" />
+                  </Form.Item>
+                  <Button htmlType="submit" type="primary" block>
+                    {editItems.env ? "Сохранить изменения" : "Добавить среду"}
+                  </Button>
+                </Form>
+                {renderList(
+                  environments,
+                  "env",
+                  "name",
+                  fetchEnvironments,
+                  deleteEnv
+                )}
+              </>
+            ),
+          },
 
-          <TabPane tab="Состояния" key="condition">
-            <Form
-              form={forms.condition}
-              onFinish={(values) =>
-                handleSubmit(
-                  values,
+          {
+            key: "condition",
+            label: "Состояния",
+            children: (
+              <>
+                <Form
+                  form={forms.condition}
+                  onFinish={(values) =>
+                    handleSubmit(
+                      values,
+                      "condition",
+                      createCondition,
+                      fetchConditions
+                    )
+                  }
+                  layout="vertical"
+                >
+                  <Form.Item
+                    name="name"
+                    label="Название состояния"
+                    rules={[
+                      { required: true, message: "Введите название состояния" },
+                    ]}
+                  >
+                    <Input placeholder="Например: Удовлетворительное" />
+                  </Form.Item>
+                  <Button htmlType="submit" type="primary" block>
+                    {editItems.condition
+                      ? "Сохранить изменения"
+                      : "Добавить состояние"}
+                  </Button>
+                </Form>
+                {renderList(
+                  conditions,
                   "condition",
-                  createCondition,
-                  fetchConditions
-                )
-              }
-              layout="vertical"
-            >
-              <Form.Item
-                name="name"
-                label="Название состояния"
-                rules={[
-                  { required: true, message: "Введите название состояния" },
-                ]}
-              >
-                <Input placeholder="Например: Удовлетворительное" />
-              </Form.Item>
-              <Button htmlType="submit" type="primary" block>
-                {editItems.condition
-                  ? "Сохранить изменения"
-                  : "Добавить состояние"}
-              </Button>
-            </Form>
-            {renderList(
-              conditions,
-              "condition",
-              "name",
-              fetchConditions,
-              deleteCondition
-            )}
-          </TabPane>
-        </Tabs>
+                  "name",
+                  fetchConditions,
+                  deleteCondition
+                )}
+              </>
+            ),
+          },
+        ]}
+      />
     </div>
   );
 };

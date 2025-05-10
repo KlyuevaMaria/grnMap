@@ -1,7 +1,5 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 import Main from "../pages/Main";
-import Main1 from "../pages/Main1";
-
 import Map from "../pages/Map";
 import About from "../pages/About";
 import AdminPanel from "../pages/AdminPanel";
@@ -14,32 +12,27 @@ import TreeEditPage from "../pages/admin/TreeEditPage";
 import AdminAppeals from "../pages/admin/AdminAppeals";
 import EmailVerificationPage from "../pages/EmailVerificationPage";
 import Current from "../pages/Current";
+import NotFound from "../pages/NotFound";
 
 const AppRoutes = () => {
   return (
     <Routes>
-      {/* <Route path="/" element={<Main />}></Route> */}
-      <Route path="/" element={<Main1 />}></Route>
+      <Route path="/" element={<Main />}></Route>
       <Route path="/map" element={<Map />}></Route>
       <Route path="/current" element={<Current />}></Route>
       <Route path="/about" element={<About />}></Route>
       <Route path="/register" element={<Signup />}></Route>
       <Route path="/login" element={<Signin />}></Route>
       <Route path="/verify-email" element={<EmailVerificationPage />}></Route>
-
-      {/* <Route path="/profile" element={<UserProfile />}></Route> */}
-      {/* <Route path="/" element={<Navigate to="/profile/info" />} /> */}
-        <Route path="/profile/*" element={<UserProfile />} />
+      <Route path="/profile/*" element={<UserProfile />} />
       {/* Админка */}
       <Route path="/admin/*" element={<AdminPanel />}></Route>
       <Route path="/tree/:id" element={<TreeDetailPage />} />
       <Route path="/tree/:id/edit" element={<TreeEditPage />} />
       <Route path="/admin/appeal" element={<AdminAppeals />} />
-
-
-
+      <Route path="*" element={<NotFound />} />
     </Routes>
   );
 };
 
-export default AppRoutes
+export default AppRoutes;

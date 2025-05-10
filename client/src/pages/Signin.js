@@ -153,7 +153,7 @@ const Signin = () => {
             </Form>
 
             <Paragraph style={{ textAlign: "center", marginTop: 16 }}>
-              Уже есть аккаунт? <a href="/login">Войти</a>
+              Нет аккаунта? <a href="/register">Зарегестрироваться</a>
             </Paragraph>
           </motion.div>
         </div>

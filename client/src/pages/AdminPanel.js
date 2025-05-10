@@ -15,6 +15,7 @@ import {
   MenuOutlined,
   MenuUnfoldOutlined,
   UnorderedListOutlined,
+  UserOutlined,
 } from "@ant-design/icons";
 
 import TreeListPage from "./admin/TreeListPage";
@@ -22,6 +23,7 @@ import TreeCreatePage from "./admin/TreeCreatePage";
 import AdminAppeals from "./admin/AdminAppeals";
 import PropertyreatePage from "./admin/PropertyreatePage";
 import { useEffect, useState } from "react";
+import UserProfile from "./UserProfile";
 
 const { Content, Sider } = Layout;
 const { useBreakpoint } = Grid;
@@ -125,6 +127,13 @@ const AdminPanel = () => {
           >
             Обращения пользователей
           </Menu.Item>
+          <Menu.Item
+            key="/profile/info"
+            icon={<UserOutlined />}
+            style={{ color: "#e8552f", fontWeight: "bold" }}
+          >
+            Профиль администратора
+          </Menu.Item>
         </Menu>
       </Sider>
 
@@ -140,6 +149,7 @@ const AdminPanel = () => {
             <Route path="trees/create" element={<TreeCreatePage />} />
             <Route path="trees/property" element={<PropertyreatePage />} />
             <Route path="appeals" element={<AdminAppeals />} />
+            <Route path="profile/info" element={<UserProfile />} />
           </Routes>
         </Content>
       </Layout>
